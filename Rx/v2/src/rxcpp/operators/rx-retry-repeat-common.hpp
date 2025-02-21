@@ -1,9 +1,15 @@
 #pragma once
 
+#if (__GNUC__ <= 9)
+#ifdef finite
+#undef finite
+#endif
+#endif
+
 /*! \file rx-retry-repeat-common.hpp
 
     \brief Implementation commonalities between retry and repeat operators abstracted away from rx-retry.hpp and rx-repeat.hpp files. Should be used only from rx-retry.hpp and rx-repeat.hpp
-    
+
 */
 
 #include "../rx-includes.hpp"
@@ -24,10 +30,10 @@ namespace rxcpp {
               source_lifetime(composite_subscription::empty()),
               out(oarg) {
           }
-          
+
           void do_subscribe() {
             auto state = this->shared_from_this();
-                
+
             state->out.remove(state->lifetime_token);
             state->source_lifetime.unsubscribe();
 
@@ -51,7 +57,7 @@ namespace rxcpp {
                                     }
                                     );
           }
-          
+
           composite_subscription source_lifetime;
           output_type out;
           composite_subscription::weak_subscription lifetime_token;
@@ -73,7 +79,7 @@ namespace rxcpp {
               // Return true if we are completed
               return remaining_ <= 0;
             }
-      
+
             inline void update() {
               // Decrement counter
               --remaining_;
@@ -85,7 +91,7 @@ namespace rxcpp {
             // Counter to hold number of times remaining to complete
             count_type remaining_;
           };
-    
+
           finite(source_type s, count_type t)
             : initial_(std::move(s), std::move(t)) {
           }
@@ -94,7 +100,7 @@ namespace rxcpp {
           void on_subscribe(const Subscriber& s) const {
               using state_t = state_type<values, Subscriber, EventHandlers, T>;
             // take a copy of the values for each subscription
-            auto state = std::make_shared<state_t>(initial_, s);      
+            auto state = std::make_shared<state_t>(initial_, s);
             if (initial_.completed_predicate()) {
               // return completed
               state->out.on_completed();
@@ -112,7 +118,7 @@ namespace rxcpp {
         template <class EventHandlers, class T, class Observable>
         struct infinite : public operator_base<T> {
             using source_type = rxu::decay_t<Observable>;
-    
+
           struct values {
             values(source_type s)
               : source(std::move(s)) {
@@ -129,7 +135,7 @@ namespace rxcpp {
 
             source_type source;
           };
-    
+
           infinite(source_type s) : initial_(std::move(s)) {
           }
 
@@ -145,8 +151,8 @@ namespace rxcpp {
         private:
           values initial_;
         };
-        
-        
+
+
       }
     }
   }
